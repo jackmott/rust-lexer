@@ -4,7 +4,7 @@ use std::sync::mpsc::*;
 pub fn main()  {
         
     let code = "(Atan2 
-                    (SiN ( + X x))
+                    (SiN ( - X x))
                     ( / x y ))";
 
     // Can use crossbeam-utils here as well for scoped thread
@@ -19,6 +19,8 @@ pub fn main()  {
     });    
 }
 
+// Tokens also contain the line number they occurred on
+// So a parser could report errors with line numbers
 #[derive(Debug)]
 pub enum Token<'a> {
     OpenParen(usize),
@@ -93,9 +95,10 @@ impl<'a> Lexer<'a> {
 
     fn accept(&mut self, valid: &str) -> bool {
         if let Some(n) = self.next() {
-            if valid.contains(n) {
+            if valid.contains(n) {                
                 true
             } else {
+                self.backup();
                 false
             }
         } else {
@@ -120,7 +123,7 @@ impl<'a> Lexer<'a> {
         return Some(StateFunction(Lexer::determine_token));
     }
 
-    fn lex_number(l: &mut Lexer) -> Option<StateFunction> {
+    fn lex_number(l: &mut Lexer) -> Option<StateFunction> {        
         l.accept("-");
         let digits = "0123456789";
         l.accept_run(digits);
